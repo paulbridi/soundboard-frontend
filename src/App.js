@@ -1,7 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios'
+import videojs from 'video.js';
+import './App.css';
 
-function UploadVideo() {
-  const [video, setVideo] = useState(null);
+
+function App() {
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [response, setResponse] = useState('');
+  const [videoClips, setVideoClips] = useState([]);
+
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -21,17 +28,39 @@ function UploadVideo() {
       .catch(error => console.log(error));
   };
 
-  const handleFileChange = (event) => {
-    setVideo(event.target.files[0]);
+  const getVideoClips = async () => {
+    try {
+      const response = await axios.get('/clips');
+      const videoClips = response.data;
+      setVideoClips(videoClips);
+  
+      // Create a video element for each video clip
+      const videoElements = videoClips.map(videoClip => {
+        const videoEl = document.createElement('video');
+        videoEl.src = videoClip.url;
+        videoEl.controls = true;
+        return videoEl;
+      });
+  
+      // Initialize the video player when the video elements are ready
+      const videoPlayerEl = document.querySelector('#video-player');
+      videoElements.forEach(videoEl => videoPlayerEl.appendChild(videoEl));
+      const videoPlayer = videojs(videoPlayerEl);
+    } catch (error) {
+      console.log(error);
+    }
   };
-
-  return (
+  
+  useEffect(() => {
+    getVideoClips();
+  }, []);  
+  
+return (
     <div>
-      <h1>Upload Video</h1>
-      <form onSubmit={handleSubmit} encType="multipart/form-data">
-        <input type="file" name="video" onChange={handleFileChange} />
-        <button type="submit">Upload</button>
-      </form>
+      <input type="file" onChange={handleFileChange} />
+      <button onClick={handleUpload}>Upload</button>
+      {response && <p>{response}</p>}
+      <div id="video-player"></div>
     </div>
   );
 }
