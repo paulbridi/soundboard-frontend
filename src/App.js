@@ -10,26 +10,22 @@ function App() {
   const [videoClips, setVideoClips] = useState([]);
 
 
-  const handleFileChange = (event) => {
-    setSelectedFile(event.target.files[0]);
-  };
-
-
-  const handleUpload = () => {
+  const handleSubmit = (event) => {
+    event.preventDefault();
     const formData = new FormData();
-    formData.append('file', selectedFile);
-  
-    axios.post('/video', formData, {
+    formData.append('file', video);
+
+    fetch('/video', {
+      method: 'POST',
+      body: formData,
+      mode: 'no-cors',
       headers: {
-        'Content-Type': 'multipart/form-data'
+        'Access-Control-Allow-Origin': 'http://localhost:3000'
       }
     })
-    .then(response => {
-      console.log(response.data); // Do something with the response data
-    })
-    .catch(error => {
-      console.error(error); // Handle any errors
-    });
+      .then(response => response.json())
+      .then(data => console.log(data))
+      .catch(error => console.log(error));
   };
 
   const getVideoClips = async () => {
@@ -69,4 +65,4 @@ return (
   );
 }
 
-export default App;
+export default UploadVideo;
